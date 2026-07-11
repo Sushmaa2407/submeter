@@ -1,0 +1,104 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id              String         @id @default(uuid())
+  email           String         @unique
+  passwordHash    String
+  role            Role           @default(CUSTOMER)
+  emailVerifiedAt DateTime?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  subscriptions   Subscription[]
+
+  @@index([email])
+}
+
+model Plan {
+  id              String          @id @default(uuid())
+  name            String
+  priceCents      Int
+  billingInterval BillingInterval
+  usageLimit      Int?
+  isArchived      Boolean         @default(false)
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  subscriptions   Subscription[]
+
+  @@index([isArchived])
+}
+
+model Subscription {
+  id                 String             @id @default(uuid())
+  userId             String
+  planId             String
+  status             SubscriptionStatus @default(ACTIVE)
+  currentPeriodStart DateTime           @default(now())
+  currentPeriodEnd   DateTime
+  cancelAtPeriodEnd  Boolean            @default(false)
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+  invoices           Invoice[]
+  plan               Plan               @relation(fields: [planId], references: [id])
+  user               User               @relation(fields: [userId], references: [id])
+  usageRecords       UsageRecord[]
+
+  @@index([userId, status])
+  @@index([planId])
+  @@index([currentPeriodEnd])
+}
+
+model Invoice {
+  id             String        @id @default(uuid())
+  subscriptionId String
+  amountCents    Int
+  status         InvoiceStatus @default(PENDING)
+  periodStart    DateTime
+  periodEnd      DateTime
+  dueDate        DateTime
+  paidAt         DateTime?
+  createdAt      DateTime      @default(now())
+  subscription   Subscription  @relation(fields: [subscriptionId], references: [id])
+
+  @@unique([subscriptionId, periodStart])
+  @@index([subscriptionId, status])
+  @@index([dueDate])
+}
+
+model UsageRecord {
+  id             String       @id @default(uuid())
+  subscriptionId String
+  quantity       Int
+  recordedAt     DateTime     @default(now())
+  subscription   Subscription @relation(fields: [subscriptionId], references: [id])
+
+  @@index([subscriptionId, recordedAt])
+}
+
+enum Role {
+  ADMIN
+  CUSTOMER
+}
+
+enum BillingInterval {
+  MONTHLY
+  YEARLY
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  PAST_DUE
+  CANCELLED
+}
+
+enum InvoiceStatus {
+  PENDING
+  PAID
+  FAILED
+}

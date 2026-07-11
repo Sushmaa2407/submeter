@@ -1,36 +1,79 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# SubMeter
 
-## Getting Started
+> Subscription billing platform with usage tracking, automated invoicing, and MRR/churn analytics for growing SaaS businesses.
 
-First, run the development server:
+**Live demo →** _add your deployed Vercel URL here once deployed_
+
+## Features
+
+- Email/password auth with role-based access (admin vs customer), rate-limited login
+- Admin: create and archive subscription plans
+- Customer: browse plans, subscribe, cancel (access continues until period end)
+- Automated recurring billing — invoices generated on a schedule, idempotent against retries
+- Simulated payment confirmation (mark invoices paid/failed) with automatic past-due/cancellation grace periods
+- Usage tracking against plan limits, with near-limit warnings (warn, never block)
+- Admin dashboard: MRR, active subscriber count, churn rate, revenue-over-time and plan-distribution charts
+
+## Tech Stack
+
+Next.js (App Router) · TypeScript (strict) · PostgreSQL (Prisma) · Tailwind CSS v4 · Auth.js · Zod · Recharts · Vercel
+
+## Quick Start
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+git clone https://github.com/YOUR_USERNAME/submeter && cd submeter
+npm install
+cp .env.example .env   # then fill in DATABASE_URL, AUTH_SECRET, CRON_SECRET
+npx prisma migrate dev --name init
+npx prisma generate
+npx tsx prisma/seed.ts
+npm run dev             # http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Demo Credentials
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+| Role | Email | Password |
+|---|---|---|
+| Admin | admin@demo.com | demo1234 |
+| Customer | demo@demo.com | demo1234 |
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Environment Variables
 
-## Learn More
+| Variable | Description |
+|---|---|
+| `DATABASE_URL` | Postgres connection string (pooled connection recommended — see docs/architecture.md) |
+| `AUTH_SECRET` | Session signing secret (`openssl rand -base64 32`) |
+| `NEXT_PUBLIC_APP_URL` | Public app URL, used for links and OG images |
+| `CRON_SECRET` | Shared secret the billing cron job sends to authenticate itself |
 
-To learn more about Next.js, take a look at the following resources:
+## Architecture
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+See [`docs/architecture.md`](docs/architecture.md) for the data model diagram, how auth/authorization work, and the non-obvious decisions made under the 10-day timebox.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Testing
 
-## Deploy on Vercel
+```bash
+npm run test       # unit tests
+npm run test:e2e   # playwright end-to-end tests
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+_(Test suite is a stretch goal for this build — see Roadmap below.)_
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Roadmap
+
+- [x] Auth, roles, subscriptions, billing, usage, dashboard
+- [ ] Real email delivery (currently stubbed — see `lib/email.ts`)
+- [ ] Real Stripe integration (currently simulated payments)
+- [ ] Automated test suite
+
+## Built With Claude
+
+This project's planning and implementation were built collaboratively with Claude, following a spec-first workflow (see `plan.md`) — schema and types locked before feature code, one milestone per day, every generated diff reviewed before accepting.
+
+## Credit
+
+Built for the [Digital Heroes](https://github.com/) Full Stack Developer Trial.
+
+## License
+
+MIT — see [LICENSE](LICENSE).
