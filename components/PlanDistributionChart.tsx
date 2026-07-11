@@ -31,7 +31,11 @@ export default function PlanDistributionChart({
             cx="50%"
             cy="50%"
             outerRadius={80}
-            label={(entry) => `${entry.planName} (${entry.subscriberCount})`}
+            // recharts hands the label function generic `name` and
+            // `value` fields (mapped internally from our nameKey and
+            // dataKey below) — not our own field names. Using its
+            // vocabulary here keeps this fully typed with no `any`.
+            label={({ name, value }) => `${name} (${value})`}
           >
             {data.map((_, index) => (
               <Cell key={index} fill={COLORS[index % COLORS.length]} />
