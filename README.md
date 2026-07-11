@@ -2,7 +2,7 @@
 
 > Subscription billing platform with usage tracking, automated invoicing, and MRR/churn analytics for growing SaaS businesses.
 
-**Live demo →** _add your deployed Vercel URL here once deployed_
+**Live demo →** https://submeter-fupwf161x-sush7.vercel.app/
 
 ## Features
 
