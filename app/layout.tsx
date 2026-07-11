@@ -37,6 +37,13 @@ export const metadata: Metadata = {
     index: true,
     follow: true,
   },
+  // Lighthouse's SEO audit specifically checks for a valid canonical
+  // tag — without one, search engines can't confirm which URL is
+  // the "real" version of a page (matters more once you have query
+  // params or a custom domain pointing at the same Vercel deploy).
+  alternates: {
+    canonical: siteUrl,
+  },
 };
 
 export default function RootLayout({
