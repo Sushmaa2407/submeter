@@ -71,7 +71,7 @@ export default async function CustomerPage() {
               </p>
               {activeSubscription.cancelAtPeriodEnd && (
                 <p className="mt-1 text-xs font-medium text-amber-600">
-                  Cancelling at period end — you'll keep access until then.
+                  Cancelling at period end — you&rsquo;ll keep access until then.
                 </p>
               )}
             </div>
@@ -82,7 +82,7 @@ export default async function CustomerPage() {
         </div>
       ) : (
         <p className="mb-6 rounded-lg border border-dashed border-neutral-300 p-6 text-center text-sm text-neutral-500">
-          You don't have an active subscription yet. Pick a plan below.
+          You don&apos;t have an active subscription yet. Pick a plan below.
         </p>
       )}
 

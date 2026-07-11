@@ -28,8 +28,8 @@ export default async function AdminInvoicesPage() {
 
       {invoices.length === 0 ? (
         <p className="rounded-lg border border-dashed border-neutral-300 p-6 text-center text-sm text-neutral-500">
-          No invoices yet — they're created automatically when a
-          subscription's billing period ends.
+          No invoices yet — they&rsquo;re created automatically when a
+          subscription&rsquo;s billing period ends.
         </p>
       ) : (
         <table className="w-full border-collapse text-sm">

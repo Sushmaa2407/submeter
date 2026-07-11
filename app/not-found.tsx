@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 export default function NotFound() {
   return (
     <main className="mx-auto flex min-h-screen max-w-sm flex-col items-center justify-center gap-3 px-4 text-center">
@@ -6,14 +8,14 @@ export default function NotFound() {
         Page not found
       </h1>
       <p className="text-sm text-neutral-500">
-        That page doesn't exist, or you don't have access to it.
+        That page doesn&apos;t exist, or you don&apos;t have access to it.
       </p>
-      <a
+      <Link
         href="/"
         className="mt-2 rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-white"
       >
         Back home
-      </a>
+      </Link>
     </main>
   );
 }

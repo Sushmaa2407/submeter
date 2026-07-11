@@ -62,7 +62,7 @@ export default function UsageTracker({
 
       {summary.isNearLimit && (
         <p className="mt-2 text-xs font-medium text-amber-600">
-          You're close to your plan's usage limit. Consider upgrading.
+          You&rsquo;re close to your plan&rsquo;s usage limit. Consider upgrading.
         </p>
       )}
 

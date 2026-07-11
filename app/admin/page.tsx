@@ -9,6 +9,7 @@
 import { getDashboardStats, getRevenueOverTime, getPlanDistribution } from "@/lib/dashboard";
 import RevenueChart from "@/components/RevenueChart";
 import PlanDistributionChart from "@/components/PlanDistributionChart";
+import Link from "next/link";
 
 function StatCard({
   label,
@@ -49,15 +50,15 @@ export default async function AdminDashboardPage() {
           Dashboard
         </h1>
         <div className="flex gap-4 text-sm">
-          <a href="/admin/plans" className="text-neutral-500 underline">
+          <Link href="/admin/plans" className="text-neutral-500 underline">
             Plans
-          </a>
-          <a href="/admin/invoices" className="text-neutral-500 underline">
+          </Link>
+          <Link href="/admin/invoices" className="text-neutral-500 underline">
             Invoices
-          </a>
-          <a href="/admin/usage" className="text-neutral-500 underline">
+          </Link>
+          <Link href="/admin/usage" className="text-neutral-500 underline">
             Usage
-          </a>
+          </Link>
         </div>
       </div>
 

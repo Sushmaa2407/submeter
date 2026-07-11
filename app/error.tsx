@@ -34,7 +34,7 @@ export default function GlobalError({
         Something went wrong
       </h1>
       <p className="text-sm text-neutral-500">
-        That's on us, not you. Try again — if it keeps happening,
+        That&rsquo;s on us, not you. Try again — if it keeps happening,
         the details have already been logged.
       </p>
       <button

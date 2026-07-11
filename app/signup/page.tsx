@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
+import Link from "next/link";
 
 // Every async action in this form now maps to exactly one of
 // these states, and the UI shows something different for each —
@@ -126,9 +127,9 @@ export default function SignupPage() {
 
       <p className="mt-6 text-sm text-neutral-500">
         Already have an account?{" "}
-        <a href="/login" className="font-medium text-neutral-900 underline">
+        <Link href="/login" className="font-medium text-neutral-900 underline">
           Log in
-        </a>
+        </Link>
       </p>
     </main>
   );
