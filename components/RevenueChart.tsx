@@ -27,7 +27,12 @@ export default function RevenueChart({ data }: { data: RevenuePoint[] }) {
             tickFormatter={(value) => `$${value}`}
           />
           <Tooltip
-            formatter={(value: number) => [`$${value.toFixed(2)}`, "Revenue"]}
+            // No type annotation on `value` here on purpose — recharts'
+            // own Formatter type is broader than a plain number (it
+            // can technically be a string, an array, or undefined),
+            // so we let TypeScript infer the correct type from
+            // Tooltip's own prop definition, then safely convert.
+            formatter={(value) => [`$${Number(value).toFixed(2)}`, "Revenue"]}
             contentStyle={{ fontSize: 13, borderRadius: 8 }}
           />
           <Line
