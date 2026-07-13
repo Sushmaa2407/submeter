@@ -9,6 +9,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { SubscribeButton, CancelButton } from "@/components/SubscriptionButtons";
 import UsageTracker from "@/components/UsageTracker";
+import PayInvoiceButton from "@/components/PayInvoiceButton";
 import { getUsageSummary } from "@/lib/usage";
 
 function StatusBadge({ status }: { status: "PENDING" | "PAID" | "FAILED" }) {
@@ -141,7 +142,12 @@ export default async function CustomerPage() {
                   Due {invoice.dueDate.toLocaleDateString()}
                 </p>
               </div>
-              <StatusBadge status={invoice.status} />
+              <div className="flex items-center gap-3">
+                {invoice.status === "PENDING" && (
+                  <PayInvoiceButton invoiceId={invoice.id} />
+                )}
+                <StatusBadge status={invoice.status} />
+              </div>
             </div>
           ))}
         </div>

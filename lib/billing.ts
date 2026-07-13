@@ -16,6 +16,7 @@
 // ============================================================
 import { prisma } from "@/lib/db";
 import { calculatePeriodEnd } from "@/lib/subscriptions";
+import { sendInvoiceCreatedEmail } from "@/lib/email";
 import { SubscriptionStatus, InvoiceStatus, Prisma } from "@prisma/client";
 
 const PAST_DUE_GRACE_DAYS = 3;
@@ -41,7 +42,7 @@ async function generateDueInvoices(): Promise<number> {
       status: SubscriptionStatus.ACTIVE,
       currentPeriodEnd: { lte: now },
     },
-    include: { plan: true },
+    include: { plan: true, user: true },
   });
 
   let created = 0;
@@ -64,6 +65,16 @@ async function generateDueInvoices(): Promise<number> {
         },
       });
       created += 1;
+
+      // Fire-and-forget style, but awaited: email sending failures
+      // are caught inside sendInvoiceCreatedEmail itself and never
+      // throw, so one bad email can't derail billing for everyone
+      // else in this loop.
+      await sendInvoiceCreatedEmail({
+        to: subscription.user.email,
+        amountCents: subscription.plan.priceCents,
+        dueDate: subscription.currentPeriodEnd,
+      });
     } catch (err) {
       if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002") {
         // Duplicate invoice for this period — already billed, skip silently.

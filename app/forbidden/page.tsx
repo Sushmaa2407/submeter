@@ -11,7 +11,7 @@ export default function ForbiddenPage() {
       </p>
       <Link
         href="/customer"
-        className="mt-2 rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-white"
+        className="mt-2 rounded-md bg-teal-700 hover:bg-teal-800 px-4 py-2 text-sm font-medium text-white"
       >
         Go to your dashboard
       </Link>

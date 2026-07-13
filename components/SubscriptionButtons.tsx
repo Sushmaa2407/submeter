@@ -31,7 +31,7 @@ export function SubscribeButton({ planId }: { planId: string }) {
       <button
         onClick={subscribe}
         disabled={isSubmitting}
-        className="rounded-md bg-neutral-900 px-4 py-1.5 text-sm font-medium text-white disabled:opacity-50"
+        className="rounded-md bg-teal-700 hover:bg-teal-800 px-4 py-1.5 text-sm font-medium text-white disabled:opacity-50"
       >
         {isSubmitting ? "Subscribing…" : "Subscribe"}
       </button>

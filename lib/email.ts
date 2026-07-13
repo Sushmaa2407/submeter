@@ -1,20 +1,14 @@
 // ============================================================
-// Email service — v1 STUB.
+// Email service — now REAL, using Resend.
 //
-// Why this file exists on its own:
-// Every other file that needs to send an email calls
-// `sendVerificationEmail(...)` and never touches SMTP/API
-// details directly. That means upgrading to real email later
-// is a change to THIS FILE ONLY — nothing else in the codebase
-// needs to know or care.
-//
-// v2 upgrade path (not built now, by design — see plan.md
-// Section 8, assumption 5):
-//   1. `npm install resend` (or nodemailer, sendgrid, etc.)
-//   2. Replace the body of sendVerificationEmail below with a
-//      real API call.
-//   3. Done. No caller anywhere else changes.
+// This replaces the v1 stub. Note it still has a graceful
+// fallback: if RESEND_API_KEY isn't set yet, it logs instead of
+// crashing — so the app keeps working while you're getting your
+// API key set up, instead of breaking signup entirely.
 // ============================================================
+import { Resend } from "resend";
+
+const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 
 interface SendVerificationEmailParams {
   to: string;
@@ -25,21 +19,79 @@ export async function sendVerificationEmail({
   to,
   verificationToken,
 }: SendVerificationEmailParams): Promise<void> {
-  // v1: no real SMTP configured. We log instead of sending, and
-  // in dev/demo we auto-verify (see auth signup flow) so the
-  // trial reviewer isn't blocked by an email they'll never receive.
   const verifyUrl = `${process.env.NEXT_PUBLIC_APP_URL}/verify?token=${verificationToken}`;
 
-  console.log(
-    `[email:stub] Verification email for ${to} — would send link: ${verifyUrl}`
-  );
+  if (!resend) {
+    console.log(
+      `[email:stub] RESEND_API_KEY not set — would send verification link to ${to}: ${verifyUrl}`
+    );
+    return;
+  }
 
-  // v2 real implementation looks roughly like:
-  //
-  // await resend.emails.send({
-  //   from: "SubMeter <noreply@yourdomain.com>",
-  //   to,
-  //   subject: "Verify your SubMeter account",
-  //   html: `<a href="${verifyUrl}">Click to verify</a>`,
-  // });
+  try {
+    await resend.emails.send({
+      // Resend's shared "onboarding@resend.dev" sender works
+      // immediately with zero setup, but ONLY delivers to the email
+      // address you signed up to Resend with — that's a Resend
+      // sandbox restriction, not a bug in this code. To email real
+      // arbitrary users, verify your own domain in Resend's
+      // dashboard and change this "from" address to something
+      // like "SubMeter <noreply@yourdomain.com>".
+      from: "SubMeter <onboarding@resend.dev>",
+      to,
+      subject: "Verify your SubMeter account",
+      html: `
+        <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto;">
+          <h1 style="font-size: 20px;">Verify your email</h1>
+          <p>Click the link below to verify your SubMeter account:</p>
+          <a href="${verifyUrl}" style="display:inline-block; background:#171717; color:#fff; padding:10px 20px; border-radius:6px; text-decoration:none;">
+            Verify email
+          </a>
+        </div>
+      `,
+    });
+  } catch (err) {
+    // Never let an email failure block signup — log it and move on.
+    // A user who never gets a verification email is a bad
+    // experience; a user who can't sign up at all because of an
+    // email provider hiccup is much worse.
+    console.error("Failed to send verification email:", err);
+  }
+}
+
+/** Sent when a customer's invoice is generated, if they want a heads-up. */
+export async function sendInvoiceCreatedEmail({
+  to,
+  amountCents,
+  dueDate,
+}: {
+  to: string;
+  amountCents: number;
+  dueDate: Date;
+}): Promise<void> {
+  if (!resend) {
+    console.log(
+      `[email:stub] Would send invoice notice to ${to}: $${(amountCents / 100).toFixed(2)} due ${dueDate.toDateString()}`
+    );
+    return;
+  }
+
+  try {
+    await resend.emails.send({
+      from: "SubMeter <onboarding@resend.dev>",
+      to,
+      subject: "Your SubMeter invoice is ready",
+      html: `
+        <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto;">
+          <h1 style="font-size: 20px;">New invoice</h1>
+          <p>$${(amountCents / 100).toFixed(2)} is due on ${dueDate.toDateString()}.</p>
+          <a href="${process.env.NEXT_PUBLIC_APP_URL}/customer" style="display:inline-block; background:#171717; color:#fff; padding:10px 20px; border-radius:6px; text-decoration:none;">
+            Pay now
+          </a>
+        </div>
+      `,
+    });
+  } catch (err) {
+    console.error("Failed to send invoice email:", err);
+  }
 }

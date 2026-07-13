@@ -69,7 +69,7 @@ export default function SignupPage() {
             disabled={isSubmitting}
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="rounded-md border border-neutral-300 px-3 py-2 text-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-neutral-900 disabled:bg-neutral-50 disabled:text-neutral-400"
+            className="rounded-md border border-neutral-300 px-3 py-2 text-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-700 disabled:bg-neutral-50 disabled:text-neutral-400"
           />
         </div>
 
@@ -86,7 +86,7 @@ export default function SignupPage() {
             disabled={isSubmitting}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="rounded-md border border-neutral-300 px-3 py-2 text-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-neutral-900 disabled:bg-neutral-50 disabled:text-neutral-400"
+            className="rounded-md border border-neutral-300 px-3 py-2 text-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-700 disabled:bg-neutral-50 disabled:text-neutral-400"
           />
           <span className="text-xs text-neutral-400">At least 8 characters.</span>
         </div>
@@ -119,7 +119,7 @@ export default function SignupPage() {
         <button
           type="submit"
           disabled={isSubmitting}
-          className="mt-2 rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-white transition-opacity disabled:opacity-50"
+          className="mt-2 rounded-md bg-teal-700 hover:bg-teal-800 px-4 py-2 text-sm font-medium text-white transition-opacity disabled:opacity-50"
         >
           {isSubmitting ? "Please wait…" : "Sign up"}
         </button>

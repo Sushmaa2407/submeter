@@ -53,7 +53,7 @@ export default function UsageTracker({
         <div className="h-2 w-full overflow-hidden rounded-full bg-neutral-100">
           <div
             className={`h-full rounded-full transition-all ${
-              summary.isNearLimit ? "bg-amber-500" : "bg-neutral-900"
+              summary.isNearLimit ? "bg-amber-500" : "bg-teal-700"
             }`}
             style={{ width: `${Math.min(summary.percentUsed ?? 0, 100)}%` }}
           />
