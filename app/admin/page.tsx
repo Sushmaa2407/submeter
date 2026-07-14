@@ -11,6 +11,14 @@ import RevenueChart from "@/components/RevenueChart";
 import PlanDistributionChart from "@/components/PlanDistributionChart";
 import Link from "next/link";
 
+// This page relies on middleware.ts (not a direct auth() call
+// here) to enforce login/role — which means Next.js can't tell on
+// its own that this needs a live database connection per-request,
+// and will otherwise try to pre-build it once at build time using
+// whatever placeholder DATABASE_URL is set in CI. This directive
+// tells it explicitly: always render fresh, per visit.
+export const dynamic = "force-dynamic";
+
 function StatCard({
   label,
   value,

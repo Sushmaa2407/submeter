@@ -16,6 +16,8 @@ import { prisma } from "@/lib/db";
 import PlanForm from "@/components/PlanForm";
 import ArchiveButton from "@/components/ArchiveButton";
 
+export const dynamic = "force-dynamic";
+
 export default async function AdminPlansPage() {
   const plans = await prisma.plan.findMany({
     orderBy: { createdAt: "desc" },

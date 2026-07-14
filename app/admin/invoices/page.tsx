@@ -1,6 +1,7 @@
-export const dynamic = "force-dynamic";
 import { prisma } from "@/lib/db";
 import InvoiceActions from "@/components/InvoiceActions";
+
+export const dynamic = "force-dynamic";
 
 function StatusBadge({ status }: { status: "PENDING" | "PAID" | "FAILED" }) {
   const styles = {

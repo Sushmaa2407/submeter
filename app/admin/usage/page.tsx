@@ -1,6 +1,8 @@
 import { prisma } from "@/lib/db";
 import { getUsageSummary } from "@/lib/usage";
 
+export const dynamic = "force-dynamic";
+
 export default async function AdminUsagePage() {
   const activeSubscriptions = await prisma.subscription.findMany({
     where: { status: "ACTIVE" },
