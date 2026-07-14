@@ -1,3 +1,12 @@
+// ============================================================
+// SubMeter — Database Schema
+// ============================================================
+// This file is the single source of truth for our data shapes.
+// Every table, every field, every relationship lives here.
+// Run `npx prisma migrate dev --name init` to turn this into
+// real tables in Postgres.
+// ============================================================
+
 generator client {
   provider = "prisma-client-js"
 }
@@ -7,79 +16,9 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model User {
-  id              String         @id @default(uuid())
-  email           String         @unique
-  passwordHash    String
-  role            Role           @default(CUSTOMER)
-  emailVerifiedAt DateTime?
-  createdAt       DateTime       @default(now())
-  updatedAt       DateTime       @updatedAt
-  subscriptions   Subscription[]
-
-  @@index([email])
-}
-
-model Plan {
-  id              String          @id @default(uuid())
-  name            String
-  priceCents      Int
-  billingInterval BillingInterval
-  usageLimit      Int?
-  isArchived      Boolean         @default(false)
-  createdAt       DateTime        @default(now())
-  updatedAt       DateTime        @updatedAt
-  subscriptions   Subscription[]
-
-  @@index([isArchived])
-}
-
-model Subscription {
-  id                 String             @id @default(uuid())
-  userId             String
-  planId             String
-  status             SubscriptionStatus @default(ACTIVE)
-  currentPeriodStart DateTime           @default(now())
-  currentPeriodEnd   DateTime
-  cancelAtPeriodEnd  Boolean            @default(false)
-  createdAt          DateTime           @default(now())
-  updatedAt          DateTime           @updatedAt
-  invoices           Invoice[]
-  plan               Plan               @relation(fields: [planId], references: [id])
-  user               User               @relation(fields: [userId], references: [id])
-  usageRecords       UsageRecord[]
-
-  @@index([userId, status])
-  @@index([planId])
-  @@index([currentPeriodEnd])
-}
-
-model Invoice {
-  id             String        @id @default(uuid())
-  subscriptionId String
-  amountCents    Int
-  status         InvoiceStatus @default(PENDING)
-  periodStart    DateTime
-  periodEnd      DateTime
-  dueDate        DateTime
-  paidAt         DateTime?
-  createdAt      DateTime      @default(now())
-  subscription   Subscription  @relation(fields: [subscriptionId], references: [id])
-
-  @@unique([subscriptionId, periodStart])
-  @@index([subscriptionId, status])
-  @@index([dueDate])
-}
-
-model UsageRecord {
-  id             String       @id @default(uuid())
-  subscriptionId String
-  quantity       Int
-  recordedAt     DateTime     @default(now())
-  subscription   Subscription @relation(fields: [subscriptionId], references: [id])
-
-  @@index([subscriptionId, recordedAt])
-}
+// ------------------------------------------------------------
+// ENUMS — a fixed list of allowed values, nothing else allowed
+// ------------------------------------------------------------
 
 enum Role {
   ADMIN
@@ -101,4 +40,121 @@ enum InvoiceStatus {
   PENDING
   PAID
   FAILED
+}
+
+// ------------------------------------------------------------
+// USER — every person who can log in
+// ------------------------------------------------------------
+model User {
+  id               String    @id @default(uuid())
+  email            String    @unique
+  passwordHash     String
+  role             Role      @default(CUSTOMER)
+  emailVerifiedAt  DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  subscriptions    Subscription[]
+  passwordResetTokens PasswordResetToken[]
+
+  @@index([email])
+}
+
+// ------------------------------------------------------------
+// PLAN — a subscription tier an admin creates
+// ------------------------------------------------------------
+model Plan {
+  id              String          @id @default(uuid())
+  name            String
+  priceCents      Int             // money stored as integer cents, never float
+  billingInterval BillingInterval
+  usageLimit      Int?            // null = unlimited
+  isArchived      Boolean         @default(false)
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  subscriptions   Subscription[]
+
+  @@index([isArchived])
+}
+
+// ------------------------------------------------------------
+// SUBSCRIPTION — the link between a User and a Plan over time
+// ------------------------------------------------------------
+model Subscription {
+  id                  String             @id @default(uuid())
+  userId              String
+  user                User               @relation(fields: [userId], references: [id])
+  planId              String
+  plan                Plan               @relation(fields: [planId], references: [id])
+  status              SubscriptionStatus @default(ACTIVE)
+  currentPeriodStart  DateTime           @default(now())
+  currentPeriodEnd    DateTime
+  cancelAtPeriodEnd   Boolean            @default(false)
+  createdAt           DateTime           @default(now())
+  updatedAt           DateTime           @updatedAt
+
+  invoices            Invoice[]
+  usageRecords        UsageRecord[]
+
+  // A user should only have ONE active subscription at a time.
+  // We enforce "no two ACTIVE rows for the same user" in application
+  // code (Prisma can't do a partial unique index across all DBs
+  // portably) — see src/lib/subscriptions.ts guard.
+  @@index([userId, status])
+  @@index([planId])
+  @@index([currentPeriodEnd])
+}
+
+// ------------------------------------------------------------
+// INVOICE — one bill for one billing period
+// ------------------------------------------------------------
+model Invoice {
+  id              String        @id @default(uuid())
+  subscriptionId  String
+  subscription    Subscription  @relation(fields: [subscriptionId], references: [id])
+  amountCents     Int
+  status          InvoiceStatus @default(PENDING)
+  periodStart     DateTime      // which billing period this invoice covers
+  periodEnd       DateTime
+  dueDate         DateTime
+  paidAt          DateTime?
+  createdAt       DateTime      @default(now())
+
+  // Prevents the billing job from ever double-billing the same
+  // subscription for the same period, even if the cron retries.
+  @@unique([subscriptionId, periodStart])
+  @@index([subscriptionId, status])
+  @@index([dueDate])
+}
+
+// ------------------------------------------------------------
+// USAGE RECORD — one logged "unit used" event
+// ------------------------------------------------------------
+model UsageRecord {
+  id              String       @id @default(uuid())
+  subscriptionId  String
+  subscription    Subscription @relation(fields: [subscriptionId], references: [id])
+  quantity        Int
+  recordedAt      DateTime     @default(now())
+
+  @@index([subscriptionId, recordedAt])
+}
+
+// ------------------------------------------------------------
+// PASSWORD RESET TOKEN — single-use, short-lived, hashed at rest
+// ------------------------------------------------------------
+model PasswordResetToken {
+  id         String    @id @default(uuid())
+  userId     String
+  user       User      @relation(fields: [userId], references: [id])
+  // We store a HASH of the token, never the plaintext token itself
+  // — same principle as passwords. The plaintext token only ever
+  // exists in the emailed link, never in our database.
+  tokenHash  String    @unique
+  expiresAt  DateTime
+  usedAt     DateTime?
+  createdAt  DateTime  @default(now())
+
+  @@index([userId])
 }

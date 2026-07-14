@@ -87,3 +87,29 @@ export async function cancelSubscription(userId: string, subscriptionId: string)
     data: { cancelAtPeriodEnd: true },
   });
 }
+
+/**
+ * Reverses a pending cancellation — the "Undo" action on the toast
+ * shown right after cancelling. Only works while the subscription
+ * hasn't actually ended yet (still ACTIVE with cancelAtPeriodEnd
+ * true); once the billing job has already flipped it to CANCELLED,
+ * there's nothing left to undo — that's a real ending, not a flag.
+ */
+export async function undoCancelSubscription(userId: string, subscriptionId: string) {
+  const subscription = await prisma.subscription.findUnique({
+    where: { id: subscriptionId },
+  });
+
+  if (!subscription || subscription.userId !== userId) {
+    throw new SubscriptionError("Subscription not found.");
+  }
+
+  if (subscription.status !== SubscriptionStatus.ACTIVE || !subscription.cancelAtPeriodEnd) {
+    throw new SubscriptionError("This subscription isn't pending cancellation.");
+  }
+
+  return prisma.subscription.update({
+    where: { id: subscriptionId },
+    data: { cancelAtPeriodEnd: false },
+  });
+}

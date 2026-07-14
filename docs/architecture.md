@@ -39,6 +39,7 @@ Idempotency is enforced at the database level via `@@unique([subscriptionId, per
 | Churn rate is an approximation (`active now + cancelled this month`, standing in for "active at month start") | True churn needs daily historical snapshots, which weren't in scope | Accurate unless subscriptions were also newly created in the same month — documented clearly in `lib/dashboard.ts` rather than presented as precise |
 | Money stored as integer cents, never floating-point dollars | Floating-point arithmetic on money causes real rounding bugs | Every dollar amount needs a `/100` or `*100` conversion at the UI boundary — a small, consistent tax worth paying |
 | Rate limiting is in-memory (`lib/rate-limit.ts`), not Redis | No extra infrastructure needed for a single-instance trial deploy | Doesn't scale correctly across multiple serverless instances — flagged in the file itself as a v2 upgrade (swap for Upstash Redis, same function signature) |
+| CSRF protection relies on `SameSite=Lax` session cookies (Auth.js's default) rather than a separate custom CSRF token system | `SameSite=Lax` already blocks the most common CSRF pattern — a malicious site firing a request using your browser's saved session cookie — since that cookie simply isn't attached to genuinely cross-site requests | A dedicated per-request CSRF token would be defense-in-depth on top of this, but is a meaningfully larger addition for marginal benefit given `SameSite` already covers the common attack path |
 
 ## Request flow example: a customer subscribes
 

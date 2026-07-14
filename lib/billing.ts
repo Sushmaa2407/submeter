@@ -16,7 +16,7 @@
 // ============================================================
 import { prisma } from "@/lib/db";
 import { calculatePeriodEnd } from "@/lib/subscriptions";
-import { sendInvoiceCreatedEmail } from "@/lib/email";
+import { sendInvoiceCreatedEmail, sendPaymentReceivedEmail } from "@/lib/email";
 import { SubscriptionStatus, InvoiceStatus, Prisma } from "@prisma/client";
 
 const PAST_DUE_GRACE_DAYS = 3;
@@ -194,7 +194,7 @@ export async function markInvoiceStatus(
 ) {
   const invoice = await prisma.invoice.findUnique({
     where: { id: invoiceId },
-    include: { subscription: true },
+    include: { subscription: { include: { user: true } } },
   });
   if (!invoice) {
     throw new Error("Invoice not found");
@@ -208,10 +208,17 @@ export async function markInvoiceStatus(
     },
   });
 
-  if (newStatus === "PAID" && invoice.subscription.status === SubscriptionStatus.PAST_DUE) {
-    await prisma.subscription.update({
-      where: { id: invoice.subscriptionId },
-      data: { status: SubscriptionStatus.ACTIVE },
+  if (newStatus === "PAID") {
+    if (invoice.subscription.status === SubscriptionStatus.PAST_DUE) {
+      await prisma.subscription.update({
+        where: { id: invoice.subscriptionId },
+        data: { status: SubscriptionStatus.ACTIVE },
+      });
+    }
+
+    await sendPaymentReceivedEmail({
+      to: invoice.subscription.user.email,
+      amountCents: invoice.amountCents,
     });
   }
 

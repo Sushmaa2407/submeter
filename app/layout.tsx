@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { ToastProvider } from "@/components/ToastProvider";
 
 // metadataBase turns every relative URL below (like the OG image
 // path) into a full absolute URL automatically — required for
@@ -53,7 +54,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className="antialiased">{children}</body>
+      <body className="antialiased">
+        <ToastProvider>{children}</ToastProvider>
+      </body>
     </html>
   );
 }

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useToast } from "@/components/ToastProvider";
 
 export default function InvoiceActions({
   invoiceId,
@@ -11,21 +12,30 @@ export default function InvoiceActions({
   status: "PENDING" | "PAID" | "FAILED";
 }) {
   const router = useRouter();
+  const { showToast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   async function markAs(newStatus: "PAID" | "FAILED") {
     setIsSubmitting(true);
-    await fetch(`/api/invoices/${invoiceId}`, {
+    const response = await fetch(`/api/invoices/${invoiceId}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ status: newStatus }),
     });
     setIsSubmitting(false);
+
+    if (!response.ok) {
+      showToast({ message: "Could not update invoice.", type: "error" });
+      return;
+    }
+    showToast({
+      message: newStatus === "PAID" ? "Invoice marked paid." : "Invoice marked failed.",
+      type: "success",
+    });
     router.refresh();
   }
 
   if (status !== "PENDING") {
-    // Already resolved — nothing actionable, just show the state.
     return <span className="text-xs text-neutral-400">No action needed</span>;
   }
 

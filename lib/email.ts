@@ -95,3 +95,73 @@ export async function sendInvoiceCreatedEmail({
     console.error("Failed to send invoice email:", err);
   }
 }
+
+/** Sent when a customer requests a password reset. */
+export async function sendPasswordResetEmail({
+  to,
+  token,
+}: {
+  to: string;
+  token: string;
+}): Promise<void> {
+  const resetUrl = `${process.env.NEXT_PUBLIC_APP_URL}/reset-password?token=${token}`;
+
+  if (!resend) {
+    console.log(`[email:stub] Would send password reset link to ${to}: ${resetUrl}`);
+    return;
+  }
+
+  try {
+    await resend.emails.send({
+      from: "SubMeter <onboarding@resend.dev>",
+      to,
+      subject: "Reset your SubMeter password",
+      html: `
+        <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto;">
+          <h1 style="font-size: 20px;">Reset your password</h1>
+          <p>This link expires in 20 minutes. If you didn't request this, you can safely ignore this email.</p>
+          <a href="${resetUrl}" style="display:inline-block; background:#0f766e; color:#fff; padding:10px 20px; border-radius:6px; text-decoration:none;">
+            Reset password
+          </a>
+        </div>
+      `,
+    });
+  } catch (err) {
+    console.error("Failed to send password reset email:", err);
+  }
+}
+
+/** Sent when a payment is actually confirmed via Stripe's webhook. */
+export async function sendPaymentReceivedEmail({
+  to,
+  amountCents,
+}: {
+  to: string;
+  amountCents: number;
+}): Promise<void> {
+  if (!resend) {
+    console.log(
+      `[email:stub] Would send payment confirmation to ${to}: $${(amountCents / 100).toFixed(2)}`
+    );
+    return;
+  }
+
+  try {
+    await resend.emails.send({
+      from: "SubMeter <onboarding@resend.dev>",
+      to,
+      subject: "Payment received — thank you",
+      html: `
+        <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto;">
+          <h1 style="font-size: 20px;">Payment received</h1>
+          <p>We've received your payment of $${(amountCents / 100).toFixed(2)}. Thanks!</p>
+          <a href="${process.env.NEXT_PUBLIC_APP_URL}/customer" style="display:inline-block; background:#0f766e; color:#fff; padding:10px 20px; border-radius:6px; text-decoration:none;">
+            View your account
+          </a>
+        </div>
+      `,
+    });
+  } catch (err) {
+    console.error("Failed to send payment confirmation email:", err);
+  }
+}

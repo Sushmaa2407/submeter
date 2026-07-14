@@ -10,9 +10,11 @@
 // ============================================================
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useToast } from "@/components/ToastProvider";
 
 export default function PlanForm() {
   const router = useRouter();
+  const { showToast } = useToast();
   const [name, setName] = useState("");
   const [price, setPrice] = useState(""); // dollars, as typed by the human
   const [interval, setInterval] = useState<"MONTHLY" | "YEARLY">("MONTHLY");
@@ -46,12 +48,14 @@ export default function PlanForm() {
     if (!response.ok) {
       const body = await response.json();
       setError(body.error ?? "Could not create plan.");
+      showToast({ message: body.error ?? "Could not create plan.", type: "error" });
       return;
     }
 
     setName("");
     setPrice("");
     setUsageLimit("");
+    showToast({ message: "Plan created.", type: "success" });
     router.refresh(); // re-fetches the server component's data, so the new plan appears in the list immediately
   }
 

@@ -67,3 +67,17 @@ export const logUsageSchema = z.object({
   quantity: z.number().int().positive("Quantity must be a positive number"),
 });
 export type LogUsageInput = z.infer<typeof logUsageSchema>;
+
+export const forgotPasswordSchema = z.object({
+  email: z.string().trim().toLowerCase().email("Enter a valid email"),
+});
+export type ForgotPasswordInput = z.infer<typeof forgotPasswordSchema>;
+
+export const resetPasswordSchema = z.object({
+  token: z.string().min(1, "Reset token is required"),
+  password: z
+    .string()
+    .min(8, "Password must be at least 8 characters")
+    .max(72, "Password is too long"),
+});
+export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>;

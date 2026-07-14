@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useToast } from "@/components/ToastProvider";
 
 export default function ArchiveButton({
   planId,
@@ -11,16 +12,23 @@ export default function ArchiveButton({
   isArchived: boolean;
 }) {
   const router = useRouter();
+  const { showToast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   async function toggle() {
     setIsSubmitting(true);
-    await fetch(`/api/plans/${planId}`, {
+    const response = await fetch(`/api/plans/${planId}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ isArchived: !isArchived }),
     });
     setIsSubmitting(false);
+
+    if (!response.ok) {
+      showToast({ message: "Could not update plan.", type: "error" });
+      return;
+    }
+    showToast({ message: isArchived ? "Plan unarchived." : "Plan archived.", type: "success" });
     router.refresh();
   }
 
