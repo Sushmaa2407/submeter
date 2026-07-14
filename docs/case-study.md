@@ -1,6 +1,6 @@
 # SubMeter — Case Study
 
-**Live demo:** https://submeter-fupwf161x-sush7.vercel.app/
+**Live demo:** https://submeter-taupe.vercel.app/
 **Repo:** https://github.com/Sushmaa2407/submeter
 
 ## Problem
