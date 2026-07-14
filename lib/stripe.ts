@@ -17,4 +17,11 @@ if (!process.env.STRIPE_SECRET_KEY) {
   );
 }
 
-export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY ?? "");
+// Stripe's SDK refuses to construct at all with an empty string —
+// which crashes Next.js's build step (it briefly loads every route
+// module to "collect page data," even ones that are never called).
+// A harmless placeholder value lets construction succeed at build
+// time; any REAL request still fails clearly and safely later,
+// specifically inside the checkout/webhook routes, if the actual
+// env var is still missing at runtime.
+export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "sk_test_placeholder_not_a_real_key");
